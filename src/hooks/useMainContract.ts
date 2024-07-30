@@ -15,11 +15,11 @@ export function useMainContract() {
 
   const [contractData, setContractData] = useState<null | {
     counter_value: number;
-    recent_sender: Address;
-    owner_address: Address;
+    recent_sender: string;
+    owner_address: string;
   }>();
 
-  const [balance, setBalance] = useState<null | number>(0);
+  const [balance, setBalance] = useState<number>(0);
 
   const mainContract = useAsyncInitialize(async () => {
     if (!client) return;
@@ -28,7 +28,6 @@ export function useMainContract() {
     );
     return client.open(contract) as OpenedContract<MainContract>;
   }, [client]);
-  //   console.log(MainContract);
 
   useEffect(() => {
     async function getValue() {
@@ -39,13 +38,13 @@ export function useMainContract() {
       setBalance(balance);
       setContractData({
         counter_value: val.number,
-        recent_sender: val.recent_sender.toString(true, true, true),
-        owner_address: val.owner_address.toString(true, true, true),
+        recent_sender: val.recent_sender.toString(),
+        owner_address: val.owner_address.toString(),
       });
 
-      console.log(balance.number);
-      console.log(val.recent_sender.toString(true, true, true));
-      console.log(val.owner_address.toString(true, true, true));
+      console.log(balance);
+      console.log(val.recent_sender.toString());
+      console.log(val.owner_address.toString());
       await sleep(10000); // sleep 5 seconds and poll value again
       getValue();
     }
@@ -54,7 +53,7 @@ export function useMainContract() {
 
   return {
     contract_address: mainContract?.address.toString(),
-    contract_balance: balance.number,
+    contract_balance: balance,
     ...contractData,
     sendIncrement: async (value: number) => {
       return mainContract?.sendIncrement(sender, toNano(0.05), value);

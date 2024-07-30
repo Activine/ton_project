@@ -7,7 +7,7 @@ import {
   ContractProvider,
   Sender,
   SendMode,
-} from "@ton/core";
+} from "ton-core";
 
 export type MainContractConfig = {
   number: number;
@@ -41,6 +41,14 @@ export class MainContract implements Contract {
     return new MainContract(address, init);
   }
 
+  async sendDeploy(provider: ContractProvider, via: Sender, value: bigint) {
+    await provider.internal(via, {
+      value,
+      sendMode: SendMode.PAY_GAS_SEPARATELY,
+      body: beginCell().endCell(),
+    });
+  }
+
   async sendIncrement(
     provider: ContractProvider,
     sender: Sender,
@@ -57,28 +65,6 @@ export class MainContract implements Contract {
       sendMode: SendMode.PAY_GAS_SEPARATELY,
       body: msg_body,
     });
-  }
-
-  async getData(provider: ContractProvider) {
-    const { stack } = await provider.get("get_contract_storage_data", []);
-    return {
-      number: stack.readNumber(),
-      recent_sender: stack.readAddress(),
-      owner_address: stack.readAddress(),
-    };
-  }
-
-  // async getBalance(provider: ContractProvider) {
-  //   const { stack } = await provider.get("get_contract_storage_data", []);
-  //   return {
-  //     number: stack.readNumber(),
-  //   };
-  // }
-  async getBalance(provider: ContractProvider) {
-    const { stack } = await provider.get("balance", []);
-    return {
-      number: stack.readNumber(),
-    };
   }
 
   async sendDeposit(provider: ContractProvider, sender: Sender, value: bigint) {
@@ -125,11 +111,17 @@ export class MainContract implements Contract {
     });
   }
 
-  async sendDeploy(provider: ContractProvider, via: Sender, value: bigint) {
-    await provider.internal(via, {
-      value,
-      sendMode: SendMode.PAY_GAS_SEPARATELY,
-      body: beginCell().endCell(),
-    });
+  async getData(provider: ContractProvider) {
+    const { stack } = await provider.get("get_contract_storage_data", []);
+    return {
+      number: stack.readNumber(),
+      recent_sender: stack.readAddress(),
+      owner_address: stack.readAddress(),
+    };
+  }
+
+  async getBalance(provider: ContractProvider) {
+    const { stack } = await provider.get("balance", []);
+    return stack.readNumber();
   }
 }
